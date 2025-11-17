@@ -37,8 +37,8 @@ main() {
   missing=()
   command -v protoc-gen-go >/dev/null 2>&1 || missing+=("google.golang.org/protobuf/cmd/protoc-gen-go@latest")
   command -v protoc-gen-go-grpc >/dev/null 2>&1 || missing+=("google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest")
-  command -v protoc-gen-go-http >/dev/null 2>&1 || missing+=("github.com/go-kratos/kratos/cmd/protoc-gen-go-http@latest")
-  command -v protoc-gen-openapi >/dev/null 2>&1 || missing+=("github.com/google/gnostic/cmd/protoc-gen-openapi@latest")
+  command -v protoc-gen-grpc-gateway >/dev/null 2>&1 || missing+=("github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest")
+  command -v protoc-gen-openapiv2 >/dev/null 2>&1 || missing+=("github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest")
 
   if [ ${#missing[@]} -gt 0 ]; then
     echo "Missing protoc plugins:" >&2
@@ -60,21 +60,23 @@ main() {
     exit 1
   fi
 
-  echo "Generating Go types, gRPC, and Kratos HTTP..."
+  find "$OUT_DIR" -type f -name '*_http.pb.go' -delete || true
+
+  echo "Generating Go types, gRPC, and gRPC-Gateway..."
   protoc -I "$ROOT_DIR" -I "$THIRD_PARTY_DIR" \
     --go_out="$OUT_DIR" --go_opt=paths=source_relative \
     --go-grpc_out="$OUT_DIR" --go-grpc_opt=paths=source_relative \
-    --go-http_out="$OUT_DIR" --go-http_opt=paths=source_relative \
+    --grpc-gateway_out="$OUT_DIR" --grpc-gateway_opt=paths=source_relative,generate_unbound_methods=true \
     $PROTO_FILES
 
-  echo "Generating OpenAPI YAML via gnostic plugin..."
+  echo "Generating OpenAPI JSON via grpc-gateway openapiv2 plugin..."
   protoc -I "$ROOT_DIR" -I "$THIRD_PARTY_DIR" \
-    --openapi_out=fq_schema_naming=true,default_response=false:"$OPENAPI_DIR" \
+    --openapiv2_out=logtostderr=true,allow_merge=true,merge_file_name=openapi.json,disable_default_errors=true:"$OPENAPI_DIR" \
     $PROTO_FILES
 
   echo "Done. Outputs:"
   echo "  Go code:   $OUT_DIR"
-  echo "  OpenAPI:   $OPENAPI_DIR (openapi.yaml files)"
+  echo "  OpenAPI:   $OPENAPI_DIR (openapi.json)"
 }
 
 main "$@"
