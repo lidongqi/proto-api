@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package company.common.v1;
+option go_package = "api/common/v1;common";
+import "google/protobuf/struct.proto";
+
+message Empty {}
+
+message Id {
+  string id = 1;
+}
+
+message Page {
+  int32 page = 1;
+  int32 size = 2;
+}
+
+message Meta {
+  string request_id = 1;
+  string trace_id = 2;
+}
+
+message Error {
+  ErrorCode code = 1;
+  string message = 2;
+}
+
+message Envelope {
+  Meta meta = 1;
+  Error error = 2;
+}
+
+enum ErrorCode {
+  ERROR_CODE_UNSPECIFIED = 0;
+  OK = 1;
+  INVALID_ARGUMENT = 2;
+  NOT_FOUND = 3;
+  ALREADY_EXISTS = 4;
+  PERMISSION_DENIED = 5;
+  UNAUTHENTICATED = 6;
+  RESOURCE_EXHAUSTED = 7;
+  FAILED_PRECONDITION = 8;
+  ABORTED = 9;
+  OUT_OF_RANGE = 10;
+  UNIMPLEMENTED = 11;
+  INTERNAL = 12;
+  UNAVAILABLE = 13;
+  DATA_LOSS = 14;
+}
+
+enum SortOrder {
+  SORT_ORDER_UNSPECIFIED = 0;
+  ASC = 1;
+  DESC = 2;
+}
+
+message Sort {
+  string field = 1;
+  SortOrder order = 2;
+}
+
+enum FilterOp {
+  FILTER_OP_UNSPECIFIED = 0;
+  EQ = 1;
+  NE = 2;
+  GT = 3;
+  LT = 4;
+  GTE = 5;
+  LTE = 6;
+  IN = 7;
+  LIKE = 8;
+}
+
+message Filter {
+  string field = 1;
+  FilterOp op = 2;
+  repeated string values = 3;
+}
+
+message ListRequest {
+  Page page = 1;
+  repeated Sort sorts = 2;
+  repeated Filter filters = 3;
+  string search = 4;
+}
+
+message Paging {
+  int32 page = 1;
+  int32 size = 2;
+  int64 total = 3;
+  bool has_next = 4;
+}
+
+message ApiResponse {
+  Envelope envelope = 1;
+  google.protobuf.Struct data = 2;
+}
+
+message ApiListResponse {
+  Envelope envelope = 1;
+  Paging paging = 2;
+  repeated google.protobuf.Struct data = 3;
+}
+
+message RestResponse {
+  ErrorCode code = 1;
+  string message = 2;
+  google.protobuf.Struct data = 3;
+}
+
+message RestListResponse {
+  ErrorCode code = 1;
+  string message = 2;
+  Paging paging = 3;
+  repeated google.protobuf.Struct data = 4;
+}
+
